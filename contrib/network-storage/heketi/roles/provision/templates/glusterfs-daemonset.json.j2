@@ -26,9 +26,27 @@
                 "hostNetwork": true,
                 "containers": [
                     {
-                        "image": "gluster/gluster-centos:gluster4u0_centos7",
+                        "image": "gluster/gluster-centos:latest",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "glusterfs",
+                        "env": [
+                            {
+                                "name": "HOST_DEV_DIR",
+                                "value": "/mnt/host-dev"
+                            },
+                            {
+                                "name": "GLUSTER_BLOCKD_STATUS_PROBE_ENABLE",
+                                "value": "1"
+                            },
+                            {
+                                "name": "GB_GLFS_LRU_COUNT",
+                                "value": "15"
+                            },
+                            {
+                                "name": "TCMU_LOGDIR",
+                                "value": "/var/log/glusterfs/gluster-block"
+                            }
+                        ],
                         "volumeMounts": [
                             {
                                 "name": "glusterfs-heketi",
@@ -55,12 +73,35 @@
                                 "mountPath": "/var/lib/glusterd"
                             },
                             {
-                                "name": "glusterfs-dev",
-                                "mountPath": "/dev"
+                                "name": "glusterfs-host-dev",
+                                "mountPath": "/mnt/host-dev"
+                            },
+                            {
+                                "name": "glusterfs-misc",
+                                "mountPath": "/var/lib/misc/glusterfsd"
+                            },
+                            {
+                                "name": "glusterfs-block-sys-class",
+                                "mountPath": "/sys/class"
+                            },
+                            {
+                                "name": "glusterfs-block-sys-module",
+                                "mountPath": "/sys/module"
+                            },
+                            {
+                                "name": "glusterfs-ssl",
+                                "mountPath": "/etc/ssl",
+                                "readOnly": true
                             },
                             {
                                 "name": "glusterfs-cgroup",
-                                "mountPath": "/sys/fs/cgroup"
+                                "mountPath": "/sys/fs/cgroup",
+                                "readOnly": true
+                            },
+                            {
+                                "name": "kernel-modules",
+                                "mountPath": "/lib/modules",
+                                "readOnly": true
                             }
                         ],
                         "securityContext": {
@@ -69,25 +110,31 @@
                         },
                         "readinessProbe": {
                             "timeoutSeconds": 3,
-                            "initialDelaySeconds": 3,
+                            "initialDelaySeconds": 40,
                             "exec": {
                                 "command": [
                                     "/bin/bash",
                                     "-c",
-                                    "systemctl status glusterd.service"
+                                    "if command -v /usr/local/bin/status-probe.sh; then /usr/local/bin/status-probe.sh readiness; else systemctl status glusterd.service; fi"
                                 ]
-                            }
+                            },
+                            "periodSeconds": 25,
+                            "successThreshold": 1,
+                            "failureThreshold": 50
                         },
                         "livenessProbe": {
                             "timeoutSeconds": 3,
-                            "initialDelaySeconds": 10,
+                            "initialDelaySeconds": 40,
                             "exec": {
                                 "command": [
                                     "/bin/bash",
                                     "-c",
-                                    "systemctl status glusterd.service"
+                                    "if command -v /usr/local/bin/status-probe.sh; then /usr/local/bin/status-probe.sh liveness; else systemctl status glusterd.service; fi"
                                 ]
-                            }
+                            },
+                            "periodSeconds": 25,
+                            "successThreshold": 1,
+                            "failureThreshold": 50
                         }
                     }
                 ],
@@ -126,15 +173,45 @@
                         }
                     },
                     {
-                        "name": "glusterfs-dev",
+                        "name": "glusterfs-host-dev",
                         "hostPath": {
                             "path": "/dev"
+                        }
+                    },
+                    {
+                        "name": "glusterfs-misc",
+                        "hostPath": {
+                            "path": "/var/lib/misc/glusterfsd"
+                        }
+                    },
+                    {
+                        "name": "glusterfs-block-sys-class",
+                        "hostPath": {
+                            "path": "/sys/class"
+                        }
+                    },
+                    {
+                        "name": "glusterfs-block-sys-module",
+                        "hostPath": {
+                            "path": "/sys/module"
                         }
                     },
                     {
                         "name": "glusterfs-cgroup",
                         "hostPath": {
                             "path": "/sys/fs/cgroup"
+                        }
+                    },
+                    {
+                        "name": "glusterfs-ssl",
+                        "hostPath": {
+                            "path": "/etc/ssl"
+                        }
+                    },
+                    {
+                        "name": "kernel-modules",
+                        "hostPath": {
+                            "path": "/lib/modules"
                         }
                     }
                 ]

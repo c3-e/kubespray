@@ -1,0 +1,25 @@
+all:
+    vars:
+        heketi_admin_key: "11elfeinhundertundelf"
+        heketi_user_key: "!!einseinseins"
+    children:
+        k8s-cluster:
+            vars:
+                kubelet_fail_swap_on: false
+            children:
+                kube-master:
+                    hosts:
+                        dev-baml-04:
+                etcd:
+                    hosts:
+                        dev-baml-04:
+                kube-node:
+                    hosts: &kube_nodes
+                        dev-baml-04:
+                        dev-baml-05:
+                        dev-baml-06:
+                heketi-node:
+                    vars:
+                        disk_volume_device_1: "/dev/nvme1n1"
+                    hosts:
+                        <<: *kube_nodes

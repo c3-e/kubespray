@@ -68,8 +68,8 @@
             "serviceAccountName": "heketi-service-account",
             "containers": [
               {
-                "image": "heketi/heketi:7",
-                "imagePullPolicy": "Always",
+                "image": "heketi/heketi:latest",
+                "imagePullPolicy": "IfNotPresent",
                 "name": "heketi",
                 "env": [
                   {
