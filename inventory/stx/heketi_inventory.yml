@@ -1,0 +1,30 @@
+all:
+    vars:
+        heketi_admin_key: "11elfeinhundertundelf"
+        heketi_user_key: "!!einseinseins"
+    children:
+        k8s-cluster:
+            vars:
+                kubelet_fail_swap_on: false
+                ansible_become_pass: osboxes.org
+            children:
+                kube-master:
+                    hosts:
+                        m-0: 
+                        m-1: 
+                        m-2: 
+                etcd:
+                    hosts:
+                        m-0: 
+                        m-1: 
+                        m-2: 
+                kube-node:
+                    hosts: &kube_nodes
+                        node-01: 
+                        node-03: 
+                        node-04: 
+                heketi-node:
+                    vars:
+                        disk_volume_device_1: "/dev/sdb"
+                    hosts:
+                        <<: *kube_nodes
