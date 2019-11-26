@@ -39,9 +39,9 @@
 
 # libselinux-python is required on SELinux enabled hosts
 # See https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html#managed-node-requirements
-- name: Install libselinux-python
+- name: Install libselinux python package
   package:
-    name: libselinux-python
+    name: python3-libselinux
     state: present
   become: true
   when:
